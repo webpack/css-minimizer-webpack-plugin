@@ -289,8 +289,8 @@ module.exports = {
     minimizer: [
       new CssMinimizerPlugin({
         minimizerOptions: [
-          {}, // Options for the first function (CssMinimizerPlugin.cssnanoMinify)
-          {}, // Options for the second function (CssMinimizerPlugin.cleanCssMinify)
+          {}, // Options for the first function (CssMinimizerPlugin.cssnanoMinify),
+          {}, // Options for the second function (CssMinimizerPlugin.cleanCssMinify),
           {}, // Options for the third function
         ],
         minify: [
