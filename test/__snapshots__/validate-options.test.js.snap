@@ -5,7 +5,7 @@ exports[`validation validation 1`] = `
  - options.test should be one of these:
    [RegExp | non-empty string, ...] | RegExp | non-empty string
    -> Filtering rules.
-   -> Read more at https://github.com/webpack-contrib/css-minimizer-webpack-plugin/#test
+   -> Read more at https://github.com/webpack/css-minimizer-webpack-plugin/#test
    Details:
     * options.test should be an array:
       [RegExp | non-empty string, ...]
@@ -22,7 +22,7 @@ exports[`validation validation 2`] = `
  - options.test should be one of these:
    [RegExp | non-empty string, ...] | RegExp | non-empty string
    -> Filtering rules.
-   -> Read more at https://github.com/webpack-contrib/css-minimizer-webpack-plugin/#test
+   -> Read more at https://github.com/webpack/css-minimizer-webpack-plugin/#test
    Details:
     * options.test[0] should be one of these:
       RegExp | non-empty string
@@ -37,7 +37,7 @@ exports[`validation validation 3`] = `
  - options.include should be one of these:
    [RegExp | non-empty string, ...] | RegExp | non-empty string
    -> Filtering rules.
-   -> Read more at https://github.com/webpack-contrib/css-minimizer-webpack-plugin/#include
+   -> Read more at https://github.com/webpack/css-minimizer-webpack-plugin/#include
    Details:
     * options.include should be an array:
       [RegExp | non-empty string, ...]
@@ -54,7 +54,7 @@ exports[`validation validation 4`] = `
  - options.include should be one of these:
    [RegExp | non-empty string, ...] | RegExp | non-empty string
    -> Filtering rules.
-   -> Read more at https://github.com/webpack-contrib/css-minimizer-webpack-plugin/#include
+   -> Read more at https://github.com/webpack/css-minimizer-webpack-plugin/#include
    Details:
     * options.include[0] should be one of these:
       RegExp | non-empty string
@@ -69,7 +69,7 @@ exports[`validation validation 5`] = `
  - options.exclude should be one of these:
    [RegExp | non-empty string, ...] | RegExp | non-empty string
    -> Filtering rules.
-   -> Read more at https://github.com/webpack-contrib/css-minimizer-webpack-plugin/#exclude
+   -> Read more at https://github.com/webpack/css-minimizer-webpack-plugin/#exclude
    Details:
     * options.exclude should be an array:
       [RegExp | non-empty string, ...]
@@ -86,7 +86,7 @@ exports[`validation validation 6`] = `
  - options.exclude should be one of these:
    [RegExp | non-empty string, ...] | RegExp | non-empty string
    -> Filtering rules.
-   -> Read more at https://github.com/webpack-contrib/css-minimizer-webpack-plugin/#exclude
+   -> Read more at https://github.com/webpack/css-minimizer-webpack-plugin/#exclude
    Details:
     * options.exclude[0] should be one of these:
       RegExp | non-empty string
@@ -101,7 +101,7 @@ exports[`validation validation 7`] = `
  - options.minimizerOptions should be one of these:
    object { … } | [object { … }, ...] (should not have fewer than 1 item)
    -> Options for \`cssMinimizerOptions\`.
-   -> Read more at https://github.com/webpack-contrib/css-minimizer-webpack-plugin/#minimizeroptions
+   -> Read more at https://github.com/webpack/css-minimizer-webpack-plugin/#minimizeroptions
    Details:
     * options.minimizerOptions should be an object:
       object { … }
@@ -114,7 +114,7 @@ exports[`validation validation 8`] = `
  - options.parallel should be one of these:
    boolean | integer
    -> Use multi-process parallel running to improve the build speed.
-   -> Read more at https://github.com/webpack-contrib/css-minimizer-webpack-plugin/#parallel
+   -> Read more at https://github.com/webpack/css-minimizer-webpack-plugin/#parallel
    Details:
     * options.parallel should be a boolean.
     * options.parallel should be an integer."
@@ -125,7 +125,7 @@ exports[`validation validation 9`] = `
  - options.parallel should be one of these:
    boolean | integer
    -> Use multi-process parallel running to improve the build speed.
-   -> Read more at https://github.com/webpack-contrib/css-minimizer-webpack-plugin/#parallel
+   -> Read more at https://github.com/webpack/css-minimizer-webpack-plugin/#parallel
    Details:
     * options.parallel should be a boolean.
     * options.parallel should be an integer."
@@ -136,7 +136,7 @@ exports[`validation validation 10`] = `
  - options.minify should be one of these:
    function | [function, ...] (should not have fewer than 1 item)
    -> Allows you to override default minify function.
-   -> Read more at https://github.com/webpack-contrib/css-minimizer-webpack-plugin/#minify
+   -> Read more at https://github.com/webpack/css-minimizer-webpack-plugin/#minify
    Details:
     * options.minify should be an instance of function.
     * options.minify should be an array:

@@ -625,10 +625,10 @@ If you're new here, please take a moment to review our contributing guidelines.
 [npm-url]: https://npmjs.com/package/css-minimizer-webpack-plugin
 [node]: https://img.shields.io/node/v/css-minimizer-webpack-plugin.svg
 [node-url]: https://nodejs.org
-[tests]: https://github.com/webpack-contrib/css-minimizer-webpack-plugin/workflows/css-minimizer-webpack-plugin/badge.svg
-[tests-url]: https://github.com/webpack-contrib/css-minimizer-webpack-plugin/actions
-[cover]: https://codecov.io/gh/webpack-contrib/css-minimizer-webpack-plugin/branch/master/graph/badge.svg
-[cover-url]: https://codecov.io/gh/webpack-contrib/css-minimizer-webpack-plugin
+[tests]: https://github.com/webpack/css-minimizer-webpack-plugin/workflows/css-minimizer-webpack-plugin/badge.svg
+[tests-url]: https://github.com/webpack/css-minimizer-webpack-plugin/actions
+[cover]: https://codecov.io/gh/webpack/css-minimizer-webpack-plugin/branch/main/graph/badge.svg
+[cover-url]: https://codecov.io/gh/webpack/css-minimizer-webpack-plugin
 [discussion]: https://img.shields.io/github/discussions/webpack/webpack
 [discussion-url]: https://github.com/webpack/webpack/discussions
 [size]: https://packagephobia.now.sh/badge?p=css-minimizer-webpack-plugin
