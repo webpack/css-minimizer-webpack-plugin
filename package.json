@@ -1,6 +1,6 @@
 {
   "name": "css-minimizer-webpack-plugin",
-  "version": "7.0.2",
+  "version": "7.0.3",
   "description": "CSS minimizer (minifier) plugin for Webpack",
   "keywords": [
     "cssnano",
