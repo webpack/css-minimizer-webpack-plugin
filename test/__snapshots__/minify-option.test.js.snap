@@ -1,19 +1,58 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
+exports[`"minify" option should work and allow to return errors and warnings from custom function without code: assets 1`] = `
+{
+  "foo.css": "body {
+  font-weight: bold;
+}
+
+body {
+  color: red;
+}
+body a {
+  text-align: center;
+}
+",
+}
+`;
+
+exports[`"minify" option should work and allow to return errors and warnings from custom function without code: error 1`] = `
+[
+  "Error: foo.css from Css Minimizer plugin
+Error 1",
+  "Error: foo.css from Css Minimizer plugin
+Error: Error 2",
+  "Error: foo.css from Css Minimizer plugin
+Error: minimizer function doesn't return the 'code' property or result is not a string value",
+]
+`;
+
+exports[`"minify" option should work and allow to return errors and warnings from custom function without code: warning 1`] = `
+[
+  "Warning: foo.css from Css Minimizer plugin
+Warning 1",
+  "Warning: foo.css from Css Minimizer plugin
+Warning 2",
+]
+`;
+
 exports[`"minify" option should work and allow to return errors and warnings from custom function: assets 1`] = `
 {
   "foo.css": ".test { color: red; }",
 }
 `;
 
-exports[`"minify" option should work and allow to return errors and warnings from custom function: error 1`] = `[]`;
-
-exports[`"minify" option should work and allow to return errors and warnings from custom function: warning 1`] = `
+exports[`"minify" option should work and allow to return errors and warnings from custom function: error 1`] = `
 [
   "Error: foo.css from Css Minimizer plugin
 Error 1",
   "Error: foo.css from Css Minimizer plugin
 Error: Error 2",
+]
+`;
+
+exports[`"minify" option should work and allow to return errors and warnings from custom function: warning 1`] = `
+[
   "Warning: foo.css from Css Minimizer plugin
 Warning 1",
   "Warning: foo.css from Css Minimizer plugin
@@ -471,7 +510,15 @@ exports[`"minify" option should work with "csso" minifier: warning 1`] = `[]`;
 
 exports[`"minify" option should work with empty code: assets 1`] = `
 {
-  "foo.css": "",
+  "foo.css": "body {
+  color: red;
+}
+a {
+  color: blue;
+}
+
+/*# sourceMappingURL=foo.css.map*/",
+  "foo.css.map": "{"version":3,"file":"foo.css","mappings":"AAAA;EACE,UAAU;AACZ;AACA;EACE,WAAW;AACb,C","sources":["webpack:///./foo.css"],"sourcesContent":["body {\\n  color: red;\\n}\\na {\\n  color: blue;\\n}"],"names":[],"sourceRoot":""}",
 }
 `;
 

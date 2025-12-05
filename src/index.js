@@ -622,7 +622,7 @@ class CssMinimizerPlugin {
                 innerSourceMap,
                 true,
               );
-            } else {
+            } else if (item.code) {
               output.source = new RawSource(item.code);
             }
           }
@@ -632,7 +632,7 @@ class CssMinimizerPlugin {
               inputSourceMap && CssMinimizerPlugin.isSourceMap(inputSourceMap);
 
             for (const error of result.errors) {
-              output.warnings.push(
+              output.errors.push(
                 CssMinimizerPlugin.buildError(
                   error,
                   name,
@@ -689,6 +689,10 @@ class CssMinimizerPlugin {
           for (const error of output.errors) {
             compilation.errors.push(error);
           }
+        }
+
+        if (!output.source) {
+          return;
         }
 
         const newInfo = { minimized: true };
