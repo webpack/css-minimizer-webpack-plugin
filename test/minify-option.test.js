@@ -1293,4 +1293,39 @@ describe('"minify" option', () => {
     expect(getErrors(stats)).toMatchSnapshot("error");
     expect(getWarnings(stats)).toMatchSnapshot("warning");
   });
+
+  it("should work and allow to return errors and warnings from custom function without code", async () => {
+    const compiler = getCompiler({
+      entry: {
+        foo: path.join(__dirname, "fixtures", "sourcemap", "foo.scss"),
+      },
+      module: {
+        rules: [
+          {
+            test: /.s?css$/i,
+            use: [
+              MiniCssExtractPlugin.loader,
+              { loader: "css-loader", options: { sourceMap: true } },
+              { loader: "sass-loader", options: { sourceMap: true } },
+            ],
+          },
+        ],
+      },
+    });
+
+    new CssMinimizerPlugin({
+      minify: async () => ({
+        warnings: ["Warning 1", new Error("Warning 2")],
+        errors: ["Error 1", new Error("Error 2")],
+      }),
+    }).apply(compiler);
+
+    const stats = await compile(compiler);
+
+    expect(readAssets(compiler, stats, /\.css(\.map)?$/)).toMatchSnapshot(
+      "assets",
+    );
+    expect(getErrors(stats)).toMatchSnapshot("error");
+    expect(getWarnings(stats)).toMatchSnapshot("warning");
+  });
 });

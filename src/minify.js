@@ -34,8 +34,10 @@ async function minify(options) {
     );
 
     if (typeof minifyResult.code !== "string") {
-      throw new Error(
-        "minimizer function doesn't return the 'code' property or result is not a string value",
+      result.errors.push(
+        new Error(
+          "minimizer function doesn't return the 'code' property or result is not a string value",
+        ),
       );
     }
 
