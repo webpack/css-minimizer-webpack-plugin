@@ -20,21 +20,6 @@ const notSettled = Symbol("not-settled");
  * @returns {Promise<T[]>} A promise that fulfills to an array of the results
  */
 function throttleAll(limit, tasks) {
-  if (!Number.isInteger(limit) || limit < 1) {
-    throw new TypeError(
-      `Expected \`limit\` to be a finite number > 0, got \`${limit}\` (${typeof limit})`,
-    );
-  }
-
-  if (
-    !Array.isArray(tasks) ||
-    !tasks.every((task) => typeof task === "function")
-  ) {
-    throw new TypeError(
-      "Expected `tasks` to be a list of functions returning a promise",
-    );
-  }
-
   return new Promise((resolve, reject) => {
     const result = Array.from({ length: tasks.length }).fill(notSettled);
     const entries = tasks.entries();

@@ -232,6 +232,16 @@ exports[`CssMinimizerPlugin should work with child compilation: errors 1`] = `[]
 
 exports[`CssMinimizerPlugin should work with child compilation: warnings 1`] = `[]`;
 
+exports[`CssMinimizerPlugin should work with empty files: assets 1`] = `
+{
+  "main.css": "",
+}
+`;
+
+exports[`CssMinimizerPlugin should work with empty files: errors 1`] = `[]`;
+
+exports[`CssMinimizerPlugin should work with empty files: warnings 1`] = `[]`;
+
 exports[`CssMinimizerPlugin should work with source map and use memory cache when the "cache" option is "true" and the asset has been changed: assets 1`] = `
 {
   "foo.css": "body{color:red}a{color:blue}
@@ -395,6 +405,16 @@ exports[`CssMinimizerPlugin should work with warnings and use memory cache when 
 [warning-plugin] Warning from style.css",
 ]
 `;
+
+exports[`CssMinimizerPlugin should work: assets 1`] = `
+{
+  "main.css": "body{color:red}a{color:blue}",
+}
+`;
+
+exports[`CssMinimizerPlugin should work: errors 1`] = `[]`;
+
+exports[`CssMinimizerPlugin should work: warnings 1`] = `[]`;
 
 exports[`CssMinimizerPlugin should write stdout and stderr of workers to stdout and stderr of main process in parallel mode: assets 1`] = `
 {

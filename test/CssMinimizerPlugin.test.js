@@ -239,6 +239,34 @@ describe("CssMinimizerPlugin", () => {
     ).toMatchSnapshot();
   });
 
+  it("should work", async () => {
+    const compiler = getCompiler({
+      entry: path.join(__dirname, "fixtures", "entry.js"),
+    });
+
+    new CssMinimizerPlugin().apply(compiler);
+
+    const stats = await compile(compiler);
+
+    expect(readAssets(compiler, stats, /\.css$/)).toMatchSnapshot("assets");
+    expect(getErrors(stats)).toMatchSnapshot("errors");
+    expect(getWarnings(stats)).toMatchSnapshot("warnings");
+  });
+
+  it("should work with empty files", async () => {
+    const compiler = getCompiler({
+      entry: path.join(__dirname, "fixtures", "empty.js"),
+    });
+
+    new CssMinimizerPlugin().apply(compiler);
+
+    const stats = await compile(compiler);
+
+    expect(readAssets(compiler, stats, /\.css$/)).toMatchSnapshot("assets");
+    expect(getErrors(stats)).toMatchSnapshot("errors");
+    expect(getWarnings(stats)).toMatchSnapshot("warnings");
+  });
+
   it("should build error", () => {
     const compiler = getCompiler({
       entry: {
