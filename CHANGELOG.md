@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [7.0.4](https://github.com/webpack/css-minimizer-webpack-plugin/compare/v7.0.3...v7.0.4) (2025-12-11)
+
+
+### Bug Fixes
+
+* handle empty files ([#295](https://github.com/webpack/css-minimizer-webpack-plugin/issues/295)) ([8b273d1](https://github.com/webpack/css-minimizer-webpack-plugin/commit/8b273d15f9ca2baf7cd0e3c03817e74be7221e5b))
+
 ### [7.0.3](https://github.com/webpack/css-minimizer-webpack-plugin/compare/v7.0.2...v7.0.3) (2025-12-05)
 
 
