@@ -622,7 +622,7 @@ class CssMinimizerPlugin {
                 innerSourceMap,
                 true,
               );
-            } else if (typeof item.code !== "undefined") {
+            } else if (typeof item.code !== "undefined" && item.code !== null) {
               output.source = new RawSource(item.code);
             }
           }

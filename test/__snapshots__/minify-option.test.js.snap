@@ -510,15 +510,7 @@ exports[`"minify" option should work with "csso" minifier: warning 1`] = `[]`;
 
 exports[`"minify" option should work with empty code: assets 1`] = `
 {
-  "foo.css": "body {
-  color: red;
-}
-a {
-  color: blue;
-}
-
-/*# sourceMappingURL=foo.css.map*/",
-  "foo.css.map": "{"version":3,"file":"foo.css","mappings":"AAAA;EACE,UAAU;AACZ;AACA;EACE,WAAW;AACb,C","sources":["webpack:///./foo.css"],"sourcesContent":["body {\\n  color: red;\\n}\\na {\\n  color: blue;\\n}"],"names":[],"sourceRoot":""}",
+  "foo.css": "",
 }
 `;
 
