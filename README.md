@@ -316,7 +316,7 @@ module.exports = {
 - Type: `Object|Array<Object>`
 - Default: `{ preset: 'default' }`
 
-Cssnano optimisations [options](https://cssnano.co/docs/what-are-optimisations/).
+Cssnano optimisations [options](https://cssnano.github.io/cssnano/docs/what-are-optimisations/#what-are-optimisations).
 
 #### `Object`
 
