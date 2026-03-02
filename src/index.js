@@ -29,6 +29,9 @@ const {
 /** @typedef {import("postcss").Stringifier} Stringifier */
 /** @typedef {import("@jridgewell/trace-mapping").TraceMap} TraceMap */
 
+// eslint-disable-next-line jsdoc/reject-any-type
+/** @typedef {any} EXPECTED_ANY */
+
 /**
  * @typedef {Record<string, unknown>} CssNanoOptions
  * @property {string=} configFile Configuration file path
@@ -58,8 +61,8 @@ const {
  * @typedef {object} MinimizedResult
  * @property {string} code Minimized code
  * @property {RawSourceMap=} map Source map
- * @property {Array<Error | ErrorObject| string>=} errors Errors
- * @property {Array<Warning | WarningObject | string>=} warnings Warnings
+ * @property {(Error | ErrorObject | string)[]=} errors Errors
+ * @property {(Warning | WarningObject | string)[]=} warnings Warnings
  */
 
 /**
@@ -77,7 +80,7 @@ const {
 
 /**
  * @template T
- * @typedef {T extends any[] ? { [P in keyof T]?: InferDefaultType<T[P]> } : InferDefaultType<T>} MinimizerOptions
+ * @typedef {T extends EXPECTED_ANY[] ? { [P in keyof T]?: InferDefaultType<T[P]> } : InferDefaultType<T>} MinimizerOptions
  */
 
 /**
@@ -96,7 +99,7 @@ const {
 
 /**
  * @template T
- * @typedef {T extends any[] ? { [P in keyof T]: BasicMinimizerImplementation<T[P]> & MinimizeFunctionHelpers; } : BasicMinimizerImplementation<T> & MinimizeFunctionHelpers} MinimizerImplementation
+ * @typedef {T extends EXPECTED_ANY[] ? { [P in keyof T]: BasicMinimizerImplementation<T[P]> & MinimizeFunctionHelpers } : BasicMinimizerImplementation<T> & MinimizeFunctionHelpers} MinimizerImplementation
  */
 
 /**
@@ -110,9 +113,9 @@ const {
 
 /**
  * @typedef InternalResult
- * @property {Array<{ code: string, map: RawSourceMap | undefined }>} outputs - Outputs
- * @property {Array<Warning | WarningObject | string>} warnings - Warnings
- * @property {Array<Error | ErrorObject | string>} errors - Errors
+ * @property {{ code: string, map: RawSourceMap | undefined }[]} outputs - Outputs
+ * @property {(Warning | WarningObject | string)[]} warnings - Warnings
+ * @property {(Error | ErrorObject | string)[]} errors - Errors
  */
 
 /** @typedef {undefined | boolean | number} Parallel */
@@ -137,7 +140,7 @@ const {
  */
 
 /**
- * @typedef {ProcessOptions | { from?: string,  to?: string, parser?: string | Syntax | Parser, stringifier?: string | Syntax | Stringifier, syntax?: string | Syntax } } ProcessOptionsExtender
+ * @typedef {ProcessOptions | { from?: string, to?: string, parser?: string | Syntax | Parser, stringifier?: string | Syntax | Stringifier, syntax?: string | Syntax }} ProcessOptionsExtender
  */
 
 /**
@@ -209,13 +212,13 @@ class CssMinimizerPlugin {
     // https://github.com/mozilla/source-map#new-sourcemapconsumerrawsourcemap
     return Boolean(
       input &&
-        typeof input === "object" &&
-        input !== null &&
-        "version" in input &&
-        "sources" in input &&
-        Array.isArray(input.sources) &&
-        "mappings" in input &&
-        typeof input.mappings === "string",
+      typeof input === "object" &&
+      input !== null &&
+      "version" in input &&
+      "sources" in input &&
+      Array.isArray(input.sources) &&
+      "mappings" in input &&
+      typeof input.mappings === "string",
     );
   }
 
@@ -391,10 +394,8 @@ class CssMinimizerPlugin {
     // https://github.com/nodejs/node/issues/19022
 
     const cpus =
-      // eslint-disable-next-line n/no-unsupported-features/node-builtins
       typeof os.availableParallelism === "function"
-        ? // eslint-disable-next-line n/no-unsupported-features/node-builtins
-          { length: os.availableParallelism() }
+        ? { length: os.availableParallelism() }
         : os.cpus() || { length: 1 };
 
     return parallel === true || typeof parallel === "undefined"
@@ -419,7 +420,7 @@ class CssMinimizerPlugin {
    * @param {Compiler} compiler Compiler
    * @param {Compilation} compilation Compilation
    * @param {Record<string, import("webpack").sources.Source>} assets Assets
-   * @param {{availableNumberOfCores: number}} optimizeOptions Optimize options
+   * @param {{ availableNumberOfCores: number }} optimizeOptions Optimize options
    * @returns {Promise<void>} Promise
    */
   async optimize(compiler, compilation, assets, optimizeOptions) {

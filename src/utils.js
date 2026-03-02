@@ -2,6 +2,7 @@
 /** @typedef {import("./index.js").RawSourceMap} RawSourceMap */
 /** @typedef {import("./index.js").MinimizedResult} MinimizedResult */
 /** @typedef {import("./index.js").CustomOptions} CustomOptions */
+/** @typedef {import("./index.js").EXPECTED_ANY} EXPECTED_ANY */
 /** @typedef {import("postcss").ProcessOptions} ProcessOptions */
 /** @typedef {import("postcss").Postcss} Postcss */
 
@@ -88,7 +89,7 @@ async function cssnanoMinify(
       }
 
       if (
-        /** @type {Error & {code: string}} */
+        /** @type {Error & { code: string }} */
         (err).code === "ERR_REQUIRE_ESM" &&
         importESM
       ) {
@@ -119,6 +120,7 @@ async function cssnanoMinify(
         `Loading PostCSS "${postcssOptions.parser}" parser failed: ${
           /** @type {Error} */ (error).message
         }\n\n(@${name})`,
+        { cause: error },
       );
     }
   }
@@ -131,6 +133,7 @@ async function cssnanoMinify(
         `Loading PostCSS "${postcssOptions.stringifier}" stringifier failed: ${
           /** @type {Error} */ (error).message
         }\n\n(@${name})`,
+        { cause: error },
       );
     }
   }
@@ -143,6 +146,7 @@ async function cssnanoMinify(
         `Loading PostCSS "${postcssOptions.syntax}" syntax failed: ${
           /** @type {Error} */ (error).message
         }\n\n(@${name})`,
+        { cause: error },
       );
     }
   }
@@ -224,8 +228,7 @@ async function cleanCssMinify(input, sourceMap, minimizerOptions) {
 
   const generatedSourceMap = result.sourceMap
     ? /** @type {RawSourceMap} */ (
-        // eslint-disable-next-line jsdoc/no-restricted-syntax
-        /** @type {any} */ (result.sourceMap).toJSON()
+        /** @type {EXPECTED_ANY} */ (result.sourceMap).toJSON()
       )
     : undefined;
 
@@ -349,10 +352,10 @@ esbuildMinify.supportsWorkerThreads = () => false;
  */
 async function parcelCssMinify(input, sourceMap, minimizerOptions) {
   const [[filename, code]] = Object.entries(input);
-  // eslint-disable-next-line jsdoc/no-restricted-syntax
+
   /**
-   * @param {Partial<import("@parcel/css").TransformOptions<any>>=} parcelCssOptions Parcel CSS options
-   * @returns {import("@parcel/css").TransformOptions<any>} Built Parcel CSS options
+   * @param {Partial<import("@parcel/css").TransformOptions<EXPECTED_ANY>>=} parcelCssOptions Parcel CSS options
+   * @returns {import("@parcel/css").TransformOptions<EXPECTED_ANY>} Built Parcel CSS options
    */
   const buildParcelCssOptions = (parcelCssOptions = {}) =>
     // Need deep copy objects to avoid https://github.com/terser/terser/issues/366
@@ -394,10 +397,10 @@ parcelCssMinify.supportsWorkerThreads = () => false;
  */
 async function lightningCssMinify(input, sourceMap, minimizerOptions) {
   const [[filename, code]] = Object.entries(input);
-  // eslint-disable-next-line jsdoc/no-restricted-syntax
+
   /**
-   * @param {Partial<import("lightningcss").TransformOptions<any>>=} lightningCssOptions Lightning CSS options
-   * @returns {import("lightningcss").TransformOptions<any>} Built Lightning CSS options
+   * @param {Partial<import("lightningcss").TransformOptions<EXPECTED_ANY>>=} lightningCssOptions Lightning CSS options
+   * @returns {import("lightningcss").TransformOptions<EXPECTED_ANY>} Built Lightning CSS options
    */
   const buildLightningCssOptions = (lightningCssOptions = {}) =>
     // Need deep copy objects to avoid https://github.com/terser/terser/issues/366
@@ -470,11 +473,10 @@ async function swcMinify(input, sourceMap, minimizerOptions) {
       ? result.errors.map((diagnostic) => {
           const error = new Error(diagnostic.message);
 
-          // eslint-disable-next-line jsdoc/no-restricted-syntax
-          /** @type {any} */ (error).span = diagnostic.span;
-
-          // eslint-disable-next-line jsdoc/no-restricted-syntax
-          /** @type {any} */ (error).level = diagnostic.level;
+          /** @type {EXPECTED_ANY} */
+          (error).span = diagnostic.span;
+          /** @type {EXPECTED_ANY} */
+          (error).level = diagnostic.level;
 
           return error;
         })

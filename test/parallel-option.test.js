@@ -97,7 +97,7 @@ describe("parallel option", () => {
 
     const stats = await compile(compiler);
 
-    expect(Worker).toHaveBeenCalledTimes(0);
+    expect(Worker).not.toHaveBeenCalled();
 
     expect(readAssets(compiler, stats, /\.css$/)).toMatchSnapshot("assets");
     expect(getErrors(stats)).toMatchSnapshot("errors");
