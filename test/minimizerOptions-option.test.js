@@ -102,7 +102,6 @@ describe('when applied with "minimizerOptions" option', () => {
     });
     new CssMinimizerPlugin({
       minimizerOptions: {
-        // eslint-disable-next-line n/no-extraneous-require
         preset: require.resolve("cssnano-preset-default"),
       },
     }).apply(compiler);
@@ -119,7 +118,6 @@ describe('when applied with "minimizerOptions" option', () => {
     });
     new CssMinimizerPlugin({
       minimizerOptions: {
-        // eslint-disable-next-line n/no-extraneous-require
         preset: require.resolve("cssnano-preset-default"),
       },
     }).apply(compiler2);
