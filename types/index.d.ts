@@ -59,7 +59,7 @@ declare class CssMinimizerPlugin<T = CssNanoOptionsExtended> {
    * @param {Compiler} compiler Compiler
    * @param {Compilation} compilation Compilation
    * @param {Record<string, import("webpack").sources.Source>} assets Assets
-   * @param {{availableNumberOfCores: number}} optimizeOptions Optimize options
+   * @param {{ availableNumberOfCores: number }} optimizeOptions Optimize options
    * @returns {Promise<void>} Promise
    */
   private optimize;
@@ -90,6 +90,7 @@ declare namespace CssMinimizerPlugin {
     Parser,
     Stringifier,
     TraceMap,
+    EXPECTED_ANY,
     CssNanoOptions,
     Warning,
     WarningObject,
@@ -139,6 +140,7 @@ type Syntax = import("postcss").Syntax;
 type Parser = import("postcss").Parser;
 type Stringifier = import("postcss").Stringifier;
 type TraceMap = import("@jridgewell/trace-mapping").TraceMap;
+type EXPECTED_ANY = any;
 type CssNanoOptions = Record<string, unknown>;
 type Warning =
   | (Error & {
@@ -199,11 +201,11 @@ type MinimizedResult = {
   /**
    * Errors
    */
-  errors?: Array<Error | ErrorObject | string> | undefined;
+  errors?: (Error | ErrorObject | string)[] | undefined;
   /**
    * Warnings
    */
-  warnings?: Array<Warning | WarningObject | string> | undefined;
+  warnings?: (Warning | WarningObject | string)[] | undefined;
 };
 type Input = {
   [file: string]: string;
@@ -212,7 +214,7 @@ type CustomOptions = {
   [key: string]: unknown;
 };
 type InferDefaultType<T> = T extends infer U ? U : CustomOptions;
-type MinimizerOptions<T> = T extends any[]
+type MinimizerOptions<T> = T extends EXPECTED_ANY[]
   ? { [P in keyof T]?: InferDefaultType<T[P]> }
   : InferDefaultType<T>;
 type BasicMinimizerImplementation<T> = (
@@ -226,7 +228,7 @@ type MinimizeFunctionHelpers = {
    */
   supportsWorkerThreads?: (() => boolean | undefined) | undefined;
 };
-type MinimizerImplementation<T> = T extends any[]
+type MinimizerImplementation<T> = T extends EXPECTED_ANY[]
   ? {
       [P in keyof T]: BasicMinimizerImplementation<T[P]> &
         MinimizeFunctionHelpers;
@@ -257,18 +259,18 @@ type InternalResult = {
   /**
    * - Outputs
    */
-  outputs: Array<{
+  outputs: {
     code: string;
     map: RawSourceMap | undefined;
-  }>;
+  }[];
   /**
    * - Warnings
    */
-  warnings: Array<Warning | WarningObject | string>;
+  warnings: (Warning | WarningObject | string)[];
   /**
    * - Errors
    */
-  errors: Array<Error | ErrorObject | string>;
+  errors: (Error | ErrorObject | string)[];
 };
 type Parallel = undefined | boolean | number;
 type Rule = RegExp | string;

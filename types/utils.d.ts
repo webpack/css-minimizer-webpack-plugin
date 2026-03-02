@@ -3,6 +3,7 @@ export type Input = import("./index.js").Input;
 export type RawSourceMap = import("./index.js").RawSourceMap;
 export type MinimizedResult = import("./index.js").MinimizedResult;
 export type CustomOptions = import("./index.js").CustomOptions;
+export type EXPECTED_ANY = import("./index.js").EXPECTED_ANY;
 export type ProcessOptions = import("postcss").ProcessOptions;
 export type Postcss = import("postcss").Postcss;
 /**

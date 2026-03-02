@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`when applied with "minimizerOptions" option matches snapshot for "discardComments" option (disable): entry.css 1`] = `
 "body{
