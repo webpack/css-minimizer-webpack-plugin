@@ -793,37 +793,24 @@ class CssMinimizerPlugin {
               return source;
             }
 
-            const [content, sourceMap] = source;
-
             if (!contentWorkerFactory) {
               contentWorkerFactory = this.createWorkerFactory(
                 availableNumberOfCores,
               );
             }
 
+            const { source: rawInput, map } = source.sourceAndMap();
+
             const output = await this.transformSource(
               compiler,
               compilation,
               name,
-              content,
-              sourceMap,
+              rawInput,
+              map,
               contentWorkerFactory.getWorker,
             );
 
-            for (const warning of output.warnings) {
-              compilation.warnings.push(warning);
-            }
-
-            for (const error of output.errors) {
-              compilation.errors.push(error);
-            }
-
-            if (output.source) {
-              const { source: code, map } = output.source.sourceAndMap();
-              return [/** @type {string} */ (code), map || undefined];
-            }
-
-            return source;
+            return output.source || source;
           },
         );
       }
