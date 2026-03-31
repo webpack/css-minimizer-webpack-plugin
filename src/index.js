@@ -810,6 +810,14 @@ class CssMinimizerPlugin {
               contentWorkerFactory.getWorker,
             );
 
+            for (const warning of output.warnings) {
+              compilation.warnings.push(warning);
+            }
+
+            for (const error of output.errors) {
+              compilation.errors.push(error);
+            }
+
             return output.source || source;
           },
         );
