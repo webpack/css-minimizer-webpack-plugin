@@ -416,6 +416,75 @@ class CssMinimizerPlugin {
   }
 
   /**
+   * Create a lazy worker factory. Workers are initialized on first call and
+   * shared across all callers within the same compilation.
+   * @private
+   * @param {number} availableNumberOfCores Available cores
+   * @param {number=} maxTasks Maximum tasks (limits worker count, defaults to availableNumberOfCores)
+   * @returns {{ getWorker: (() => MinimizerWorker<T>) | undefined, numberOfWorkers: number, end: () => Promise<void> }} Worker factory and cleanup
+   */
+  createWorkerFactory(availableNumberOfCores, maxTasks) {
+    if (availableNumberOfCores <= 0) {
+      return { getWorker: undefined, numberOfWorkers: 0, end: async () => {} };
+    }
+
+    /** @type {MinimizerWorker<T> | undefined} */
+    let initializedWorker;
+    const numberOfWorkers = Math.min(
+      maxTasks || availableNumberOfCores,
+      availableNumberOfCores,
+    );
+
+    /** @type {() => MinimizerWorker<T>} */
+    const getWorker = () => {
+      if (initializedWorker) {
+        return initializedWorker;
+      }
+
+      const { Worker } = require("jest-worker");
+
+      initializedWorker = /** @type {MinimizerWorker<T>} */ (
+        new Worker(require.resolve("./minify"), {
+          numWorkers: numberOfWorkers,
+          enableWorkerThreads: Array.isArray(
+            this.options.minimizer.implementation,
+          )
+            ? this.options.minimizer.implementation.every((item) =>
+                CssMinimizerPlugin.isSupportsWorkerThreads(item),
+              )
+            : CssMinimizerPlugin.isSupportsWorkerThreads(
+                this.options.minimizer.implementation,
+              ),
+        })
+      );
+
+      // https://github.com/facebook/jest/issues/8872#issuecomment-524822081
+      const workerStdout = initializedWorker.getStdout();
+
+      if (workerStdout) {
+        workerStdout.on("data", (chunk) => process.stdout.write(chunk));
+      }
+
+      const workerStderr = initializedWorker.getStderr();
+
+      if (workerStderr) {
+        workerStderr.on("data", (chunk) => process.stderr.write(chunk));
+      }
+
+      return initializedWorker;
+    };
+
+    const end = async () => {
+      if (initializedWorker) {
+        await initializedWorker.end();
+        initializedWorker = undefined;
+      }
+    };
+
+    return { getWorker, numberOfWorkers, end };
+  }
+
+  /**
    * @private
    * @param {Compiler} compiler Compiler
    * @param {Compilation} compilation Compilation
@@ -470,60 +539,11 @@ class CssMinimizerPlugin {
       return;
     }
 
-    /** @type {undefined | (() => MinimizerWorker<T>)} */
-    let getWorker;
-    /** @type {undefined | MinimizerWorker<T>} */
-    let initializedWorker;
-    /** @type {undefined | number} */
-    let numberOfWorkers;
-
-    if (optimizeOptions.availableNumberOfCores > 0) {
-      // Do not create unnecessary workers when the number of files is less than the available cores, it saves memory
-      numberOfWorkers = Math.min(
-        numberOfAssetsForMinify,
-        optimizeOptions.availableNumberOfCores,
-      );
-
-      getWorker = () => {
-        if (initializedWorker) {
-          return initializedWorker;
-        }
-
-        const { Worker } = require("jest-worker");
-
-        initializedWorker = /** @type {MinimizerWorker<T>} */ (
-          new Worker(require.resolve("./minify"), {
-            numWorkers: numberOfWorkers,
-            enableWorkerThreads: Array.isArray(
-              this.options.minimizer.implementation,
-            )
-              ? this.options.minimizer.implementation.every((item) =>
-                  CssMinimizerPlugin.isSupportsWorkerThreads(item),
-                )
-              : CssMinimizerPlugin.isSupportsWorkerThreads(
-                  this.options.minimizer.implementation,
-                ),
-          })
-        );
-
-        // https://github.com/facebook/jest/issues/8872#issuecomment-524822081
-        const workerStdout = initializedWorker.getStdout();
-
-        if (workerStdout) {
-          workerStdout.on("data", (chunk) => process.stdout.write(chunk));
-        }
-
-        const workerStderr = initializedWorker.getStderr();
-
-        if (workerStderr) {
-          workerStderr.on("data", (chunk) => process.stderr.write(chunk));
-        }
-
-        return initializedWorker;
-      };
-    }
-
-    const { SourceMapSource, RawSource } = compiler.webpack.sources;
+    const workerFactory = this.createWorkerFactory(
+      optimizeOptions.availableNumberOfCores,
+      numberOfAssetsForMinify,
+    );
+    const { getWorker, numberOfWorkers } = workerFactory;
     const scheduledTasks = [];
 
     for (const asset of assetsForMinify) {
@@ -532,164 +552,32 @@ class CssMinimizerPlugin {
         let { output } = asset;
 
         if (!output) {
-          let input;
-          /** @type {RawSourceMap | undefined} */
-          let inputSourceMap;
+          const { source: input, map } = inputSource.sourceAndMap();
 
-          const { source: sourceFromInputSource, map } =
-            inputSource.sourceAndMap();
-
-          input = sourceFromInputSource;
-
-          if (map) {
-            if (!CssMinimizerPlugin.isSourceMap(map)) {
-              compilation.warnings.push(
-                /** @type {WebpackError} */ (
-                  new Error(`${name} contains invalid source map`)
-                ),
-              );
-            } else {
-              inputSourceMap = /** @type {RawSourceMap} */ (map);
-            }
-          }
-
-          if (Buffer.isBuffer(input)) {
-            input = input.toString();
-          }
-
-          /**
-           * @type {InternalOptions<T>}
-           */
-          const options = {
+          output = await this.transformSource(
+            compiler,
+            compilation,
             name,
             input,
-            inputSourceMap,
-            minimizer: {
-              implementation: this.options.minimizer.implementation,
-              options: this.options.minimizer.options,
-            },
-          };
+            map,
+            getWorker,
+          );
 
-          let result;
-
-          try {
-            result = await (getWorker
-              ? getWorker().transform(getSerializeJavascript()(options))
-              : minify(options));
-          } catch (error) {
-            const hasSourceMap =
-              inputSourceMap && CssMinimizerPlugin.isSourceMap(inputSourceMap);
-
-            compilation.errors.push(
-              /** @type {WebpackError} */ (
-                CssMinimizerPlugin.buildError(
-                  /** @type {Error} */ (error),
-                  name,
-                  hasSourceMap
-                    ? new (getTraceMapping().TraceMap)(
-                        /** @type {RawSourceMap} */ (inputSourceMap),
-                      )
-                    : undefined,
-
-                  hasSourceMap ? compilation.requestShortener : undefined,
-                )
-              ),
-            );
-
-            return;
-          }
-
-          output = { warnings: [], errors: [] };
-
-          for (const item of result.outputs) {
-            if (item.map) {
-              let originalSource;
-              let innerSourceMap;
-
-              if (output.source) {
-                ({ source: originalSource, map: innerSourceMap } =
-                  output.source.sourceAndMap());
-              } else {
-                originalSource = input;
-                innerSourceMap = inputSourceMap;
-              }
-
-              // TODO need API for merging source maps in `webpack-source`
-              output.source = new SourceMapSource(
-                item.code,
-                name,
-                item.map,
-                originalSource,
-                innerSourceMap,
-                true,
-              );
-            } else if (typeof item.code !== "undefined" && item.code !== null) {
-              output.source = new RawSource(item.code);
-            }
-          }
-
-          if (result.errors && result.errors.length > 0) {
-            const hasSourceMap =
-              inputSourceMap && CssMinimizerPlugin.isSourceMap(inputSourceMap);
-
-            for (const error of result.errors) {
-              output.errors.push(
-                CssMinimizerPlugin.buildError(
-                  error,
-                  name,
-                  hasSourceMap
-                    ? new (getTraceMapping().TraceMap)(
-                        /** @type {RawSourceMap} */ (inputSourceMap),
-                      )
-                    : undefined,
-
-                  hasSourceMap ? compilation.requestShortener : undefined,
-                ),
-              );
-            }
-          }
-
-          if (result.warnings && result.warnings.length > 0) {
-            const hasSourceMap =
-              inputSourceMap && CssMinimizerPlugin.isSourceMap(inputSourceMap);
-
-            for (const warning of result.warnings) {
-              const buildWarning = CssMinimizerPlugin.buildWarning(
-                warning,
-                name,
-                this.options.warningsFilter,
-                hasSourceMap
-                  ? new (getTraceMapping().TraceMap)(
-                      /** @type {RawSourceMap} */ (inputSourceMap),
-                    )
-                  : undefined,
-
-                hasSourceMap ? compilation.requestShortener : undefined,
-              );
-
-              if (buildWarning) {
-                output.warnings.push(buildWarning);
-              }
-            }
-          }
-
-          await cacheItem.storePromise({
-            source: output.source,
-            warnings: output.warnings,
-            errors: output.errors,
-          });
-        }
-
-        if (output.warnings && output.warnings.length > 0) {
-          for (const warning of output.warnings) {
-            compilation.warnings.push(warning);
+          if (output.source) {
+            await cacheItem.storePromise({
+              source: output.source,
+              warnings: output.warnings,
+              errors: output.errors,
+            });
           }
         }
 
-        if (output.errors && output.errors.length > 0) {
-          for (const error of output.errors) {
-            compilation.errors.push(error);
-          }
+        for (const warning of output.warnings || []) {
+          compilation.warnings.push(warning);
+        }
+
+        for (const error of output.errors || []) {
+          compilation.errors.push(error);
         }
 
         if (!output.source) {
@@ -704,14 +592,175 @@ class CssMinimizerPlugin {
     }
 
     const limit =
-      getWorker && numberOfAssetsForMinify > 0
-        ? /** @type {number} */ (numberOfWorkers)
+      getWorker && numberOfWorkers > 0
+        ? numberOfWorkers
         : scheduledTasks.length;
     await throttleAll(limit, scheduledTasks);
 
-    if (initializedWorker) {
-      await initializedWorker.end();
+    await workerFactory.end();
+  }
+
+  /**
+   * Minify a CSS source and return the result with errors/warnings.
+   * Shared by both processAssets and processContent hooks.
+   * Callers are responsible for pushing returned warnings/errors to compilation.
+   * @private
+   * @param {Compiler} compiler Compiler
+   * @param {Compilation} compilation Compilation
+   * @param {string} name Asset or resource name
+   * @param {string | Buffer} rawInput CSS content
+   * @param {unknown} rawSourceMap Source map (validated internally)
+   * @param {(() => MinimizerWorker<T>) | undefined} getWorker Worker factory
+   * @returns {Promise<{ source: import("webpack").sources.Source | undefined, warnings: EXPECTED_ANY[], errors: EXPECTED_ANY[] }>} Result
+   */
+  async transformSource(
+    compiler,
+    compilation,
+    name,
+    rawInput,
+    rawSourceMap,
+    getWorker,
+  ) {
+    const input = Buffer.isBuffer(rawInput) ? rawInput.toString() : rawInput;
+    const { SourceMapSource, RawSource } = compiler.webpack.sources;
+
+    /** @type {RawSourceMap | undefined} */
+    let inputSourceMap;
+
+    /** @type {EXPECTED_ANY[]} */
+    const earlyWarnings = [];
+
+    if (rawSourceMap) {
+      if (!CssMinimizerPlugin.isSourceMap(rawSourceMap)) {
+        earlyWarnings.push(
+          /** @type {WebpackError} */ (
+            new Error(`${name} contains invalid source map`)
+          ),
+        );
+      } else {
+        inputSourceMap = /** @type {RawSourceMap} */ (rawSourceMap);
+      }
     }
+
+    /** @type {InternalOptions<T>} */
+    const options = {
+      name,
+      input,
+      inputSourceMap,
+      minimizer: {
+        implementation: this.options.minimizer.implementation,
+        options: this.options.minimizer.options,
+      },
+    };
+
+    /** @type {InternalResult} */
+    let result;
+
+    try {
+      result = await (getWorker
+        ? getWorker().transform(getSerializeJavascript()(options))
+        : minify(options));
+    } catch (error) {
+      const hasSourceMap =
+        inputSourceMap && CssMinimizerPlugin.isSourceMap(inputSourceMap);
+
+      const builtError = CssMinimizerPlugin.buildError(
+        /** @type {Error} */ (error),
+        name,
+        hasSourceMap
+          ? new (getTraceMapping().TraceMap)(
+              /** @type {RawSourceMap} */ (inputSourceMap),
+            )
+          : undefined,
+        hasSourceMap ? compilation.requestShortener : undefined,
+      );
+
+      return {
+        source: undefined,
+        warnings: earlyWarnings,
+        errors: [builtError],
+      };
+    }
+
+    /** @type {import("webpack").sources.Source | undefined} */
+    let source;
+
+    for (const item of result.outputs) {
+      if (item.map) {
+        let originalSource;
+        let innerSourceMap;
+
+        if (source) {
+          ({ source: originalSource, map: innerSourceMap } =
+            source.sourceAndMap());
+        } else {
+          originalSource = input;
+          innerSourceMap = inputSourceMap;
+        }
+
+        // TODO need API for merging source maps in `webpack-source`
+        source = new SourceMapSource(
+          item.code,
+          name,
+          item.map,
+          originalSource,
+          innerSourceMap,
+          true,
+        );
+      } else if (typeof item.code !== "undefined" && item.code !== null) {
+        source = new RawSource(item.code);
+      }
+    }
+
+    /** @type {EXPECTED_ANY[]} */
+    const errors = [];
+    /** @type {EXPECTED_ANY[]} */
+    const warnings = [];
+
+    if (result.errors && result.errors.length > 0) {
+      const hasSourceMap =
+        inputSourceMap && CssMinimizerPlugin.isSourceMap(inputSourceMap);
+
+      for (const error of result.errors) {
+        errors.push(
+          CssMinimizerPlugin.buildError(
+            error,
+            name,
+            hasSourceMap
+              ? new (getTraceMapping().TraceMap)(
+                  /** @type {RawSourceMap} */ (inputSourceMap),
+                )
+              : undefined,
+            hasSourceMap ? compilation.requestShortener : undefined,
+          ),
+        );
+      }
+    }
+
+    if (result.warnings && result.warnings.length > 0) {
+      const hasSourceMap =
+        inputSourceMap && CssMinimizerPlugin.isSourceMap(inputSourceMap);
+
+      for (const warning of result.warnings) {
+        const buildWarning = CssMinimizerPlugin.buildWarning(
+          warning,
+          name,
+          this.options.warningsFilter,
+          hasSourceMap
+            ? new (getTraceMapping().TraceMap)(
+                /** @type {RawSourceMap} */ (inputSourceMap),
+              )
+            : undefined,
+          hasSourceMap ? compilation.requestShortener : undefined,
+        );
+
+        if (buildWarning) {
+          warnings.push(buildWarning);
+        }
+      }
+    }
+
+    return { source, warnings: [...earlyWarnings, ...warnings], errors };
   }
 
   /**
@@ -725,6 +774,60 @@ class CssMinimizerPlugin {
     );
 
     compiler.hooks.compilation.tap(pluginName, (compilation) => {
+      // Process CSS content embedded in JS modules (text/style/css-style-sheet export types)
+      // processContent runs during code generation, which happens before processAssets,
+      // so the worker is cleaned up in the processAssets handler below.
+      /** @type {ReturnType<typeof this.createWorkerFactory> | undefined} */
+      let contentWorkerFactory;
+
+      if (compilation.hooks.processContent) {
+        compilation.hooks.processContent.tapPromise(
+          pluginName,
+          async (source, name) => {
+            if (
+              !compiler.webpack.ModuleFilenameHelpers.matchObject.bind(
+                undefined,
+                this.options,
+              )(name)
+            ) {
+              return source;
+            }
+
+            const [content, sourceMap] = source;
+
+            if (!contentWorkerFactory) {
+              contentWorkerFactory = this.createWorkerFactory(
+                availableNumberOfCores,
+              );
+            }
+
+            const output = await this.transformSource(
+              compiler,
+              compilation,
+              name,
+              content,
+              sourceMap,
+              contentWorkerFactory.getWorker,
+            );
+
+            for (const warning of output.warnings) {
+              compilation.warnings.push(warning);
+            }
+
+            for (const error of output.errors) {
+              compilation.errors.push(error);
+            }
+
+            if (output.source) {
+              const { source: code, map } = output.source.sourceAndMap();
+              return [/** @type {string} */ (code), map || undefined];
+            }
+
+            return source;
+          },
+        );
+      }
+
       compilation.hooks.processAssets.tapPromise(
         {
           name: pluginName,
@@ -732,10 +835,17 @@ class CssMinimizerPlugin {
             compiler.webpack.Compilation.PROCESS_ASSETS_STAGE_OPTIMIZE_SIZE,
           additionalAssets: true,
         },
-        (assets) =>
-          this.optimize(compiler, compilation, assets, {
+        async (assets) => {
+          // Clean up processContent workers before processing assets
+          if (contentWorkerFactory) {
+            await contentWorkerFactory.end();
+            contentWorkerFactory = undefined;
+          }
+
+          await this.optimize(compiler, compilation, assets, {
             availableNumberOfCores,
-          }),
+          });
+        },
       );
 
       compilation.hooks.statsPrinter.tap(pluginName, (stats) => {

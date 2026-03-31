@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`processContent hook should minimize CSS embedded in JS via processContent hook: errors 1`] = `[]`;
+
+exports[`processContent hook should minimize CSS embedded in JS via processContent hook: warnings 1`] = `[]`;
+
+exports[`processContent hook should not minimize CSS when name does not match test option: errors 1`] = `[]`;
+
+exports[`processContent hook should not minimize CSS when name does not match test option: warnings 1`] = `[]`;
+
+exports[`processContent hook should work alongside processAssets for standalone .css files: errors 1`] = `[]`;
+
+exports[`processContent hook should work alongside processAssets for standalone .css files: warnings 1`] = `[]`;
