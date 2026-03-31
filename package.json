@@ -104,7 +104,7 @@
     "standard-version": "^9.5.0",
     "sugarss": "^5.0.0",
     "typescript": "^5.5.4",
-    "webpack": "^5.93.0"
+    "webpack": "https://pkg.pr.new/webpack@ba3f97c"
   },
   "peerDependencies": {
     "webpack": "^5.0.0"

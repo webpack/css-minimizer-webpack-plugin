@@ -55,6 +55,15 @@ declare class CssMinimizerPlugin<T = CssNanoOptionsExtended> {
    */
   private options;
   /**
+   * Create a lazy worker factory. Workers are initialized on first call and
+   * shared across all callers within the same compilation.
+   * @private
+   * @param {number} availableNumberOfCores Available cores
+   * @param {number=} maxTasks Maximum tasks (limits worker count, defaults to availableNumberOfCores)
+   * @returns {{ getWorker: (() => MinimizerWorker<T>) | undefined, numberOfWorkers: number, end: () => Promise<void> }} Worker factory and cleanup
+   */
+  private createWorkerFactory;
+  /**
    * @private
    * @param {Compiler} compiler Compiler
    * @param {Compilation} compilation Compilation
@@ -63,6 +72,20 @@ declare class CssMinimizerPlugin<T = CssNanoOptionsExtended> {
    * @returns {Promise<void>} Promise
    */
   private optimize;
+  /**
+   * Minify a CSS source and return the result with errors/warnings.
+   * Shared by both processAssets and processContent hooks.
+   * Callers are responsible for pushing returned warnings/errors to compilation.
+   * @private
+   * @param {Compiler} compiler Compiler
+   * @param {Compilation} compilation Compilation
+   * @param {string} name Asset or resource name
+   * @param {string | Buffer} rawInput CSS content
+   * @param {unknown} rawSourceMap Source map (validated internally)
+   * @param {(() => MinimizerWorker<T>) | undefined} getWorker Worker factory
+   * @returns {Promise<{ source: import("webpack").sources.Source | undefined, warnings: EXPECTED_ANY[], errors: EXPECTED_ANY[] }>} Result
+   */
+  private transformSource;
   /**
    * @param {Compiler} compiler Compiler
    * @returns {void} Void
